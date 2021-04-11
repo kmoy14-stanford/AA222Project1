@@ -12,7 +12,7 @@
 =#
 
 # Example:
-# using LinearAlgebra
+using LinearAlgebra
 
 #=
     If you're going to include files, please do so up here. Note that they
@@ -25,6 +25,8 @@
 
 # Example
 # include("myfile.jl")
+# include("helpers.jl")
+# include("simple.jl")
 
 
 """
@@ -41,6 +43,38 @@ Returns:
     - The location of the minimum
 """
 function optimize(f, g, x0, n, prob)
-    x_best = x0
+
+    # Try hyper Nesterov Momentum
+    α = 0.1
+    β = 0.5
+    x = copy(x0)
+    x_history = copy(x0)
+    v = zeros(length(x))
+    g_curr = zeros(length(x))
+    g_prev = zeros(length(x))
+    μ = 0.005
+    while count(f,g) < n
+        g_curr = normalize!(copy(g(x)))
+        α = α - μ*(g_curr⋅(-g_prev - β*v))
+        v[:] = β*v + g_curr
+        g_prev = copy(g_curr)
+        x = x - α*(g_curr + β*v)
+        x_history = vcat(x_history, x)
+        # println(α)
+        # # print(x)
+        # print(f(x))
+    end
+
+    # TODO: Create separate file and function that will run optimizer with 3 different
+    # random seeds, and then generate the plots.
+    # see localtest.jl for tips
+
+
+    # TODO if time:
+    # Try generalized pattern search
+    # Try Nelder-mead
+
+    x_best = x
     return x_best
+    # return last(x_history)
 end
